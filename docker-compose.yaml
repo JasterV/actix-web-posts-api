@@ -1,0 +1,41 @@
+version: "3.4"
+services:
+  actix_api:
+    container_name: "actix_api"
+    build:
+      context: .
+      dockerfile: "Dockerfile"
+      cache_from: 
+        - rust:latest
+    links:
+      - "postgres"
+    depends_on:
+      - "postgres"
+    environment:
+      - PG_URL=postgres://docker:docker@postgres:5432/docker
+    networks:
+      - actix_api
+    tty: true
+    ports:
+      - "4000:4000"
+    
+  postgres:
+    image: postgres:alpine
+    volumes:
+      - pg_actix:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: "docker" 
+      POSTGRES_PASSWORD: "docker"
+      PGPASSWORD: "docker"
+    networks:
+      - actix_api
+    ports:
+      - "5432:5432"
+
+networks:
+  actix_api:
+    driver: bridge
+
+volumes:
+    pg_actix:
+        driver: local
