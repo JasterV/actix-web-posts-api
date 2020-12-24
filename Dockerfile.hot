@@ -1,0 +1,16 @@
+FROM rust:latest
+
+RUN apt-get -y update && \
+     apt-get -y upgrade  && \
+     apt -y install ca-certificates libssl-dev libpq-dev libpq-dev
+
+RUN cargo install cargo-watch
+
+RUN mkdir -p /app
+
+COPY . /app
+
+WORKDIR /app
+
+ENTRYPOINT [ "cargo", "watch", "-x", "run"]
+
