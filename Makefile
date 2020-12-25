@@ -1,8 +1,8 @@
 watch:
-	docker-compose -f docker-compose-hot.yaml up
+	docker-compose -f docker-compose-test.yaml up -d && docker-compose -f docker-compose-test.yaml exec actix_api_test bash
 
 watch-build:
-	docker-compose -f docker-compose-hot.yaml build
+	docker-compose -f docker-compose-test.yaml build
 
 watch-down:
-	docker-compose -f docker-compose-hot.yaml down
+	docker-compose -f docker-compose-test.yaml down

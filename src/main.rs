@@ -21,9 +21,10 @@ async fn greets(Path(name): Path<String>) -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    let db_url = env::var("PG_URL").expect("Error retrieving the database url");
+    let db_url = env::var("DATABASE_URL").expect("Error retrieving the database url");
     run_migrations(&db_url);
     let pool = get_pool(&db_url);
+
     HttpServer::new(move || App::new().service(greets).data(pool.clone()))
         .bind("0.0.0.0:4000")?
         .run()

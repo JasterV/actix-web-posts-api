@@ -1,10 +1,10 @@
 version: "3.4"
 services:
-  actix_api_hot:
-    container_name: "actix_api_hot"
+  actix_api_test:
+    container_name: "actix_api_test"
     build:
       context: .
-      dockerfile: "Dockerfile.hot"
+      dockerfile: "Dockerfile.test"
       cache_from: 
         - rust:latest
     links:
@@ -12,7 +12,7 @@ services:
     depends_on:
       - "postgres"
     environment:
-      - PG_URL=postgres://docker:docker@postgres:5432/docker
+      - DATABASE_URL=postgres://docker:docker@postgres:5432/docker
     networks:
       - actix_api
     volumes: 
