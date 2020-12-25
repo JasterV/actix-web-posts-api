@@ -8,8 +8,6 @@ RUN cargo install cargo-watch
 
 RUN mkdir -p /app
 
-COPY . /app
-
 WORKDIR /app
 
 ENTRYPOINT [ "cargo", "watch", "-x", "run"]
