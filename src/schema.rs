@@ -1,6 +1,6 @@
 table! {
-    posts (id) {
-        id -> Int4,
+    posts (uuid) {
+        uuid -> Uuid,
         title -> Varchar,
         body -> Text,
         published -> Bool,
