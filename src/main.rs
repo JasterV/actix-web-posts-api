@@ -11,19 +11,43 @@ mod schema;
 
 use actix_web::{
     get,
-    web::{self, Path},
-    App, HttpServer, Responder,
+    post,
+    put,
+    delete,
+    patch,
+    web::{self, Path, Json, Data},
+    App, HttpServer, Responder, HttpResponse
 };
 
 use actix::SyncArbiter;
 use actors::db::DbActor;
 use db_utils::{get_pool, run_migrations};
-use models::AppState;
+use models::{AppState, NewPost, Post};
 use std::env;
 
-#[get("/{name}")]
-async fn greets(Path(name): Path<String>) -> impl Responder {
-    format!("Hello, how are you {}?", name)
+#[post("/new")]
+async fn create_post(post: Json<NewPost>, state: Data<AppState>) -> impl Responder {
+    format!("Hello, how are you?")
+}
+
+#[get("/published")]
+async fn get_posts(state: Data<AppState>) -> impl Responder {
+    format!("Hello, how are you")
+}
+
+#[put("/{id}")]
+async fn update_post(Path(id): Path<String>, post: Json<NewPost>, state: Data<AppState>) -> impl Responder {
+    format!("Hello, how are you {}?", id)
+}
+
+#[delete("/{id}")]
+async fn delete_post(Path(id): Path<String>, state: Data<AppState>) -> impl Responder {
+    format!("Hello, how are you {}?", id)
+}
+
+#[patch("/{id}")]
+async fn publish_post(Path(id): Path<String>, state: Data<AppState>) -> impl Responder {
+    format!("Hello, how are you {}?", id)
 }
 
 #[actix_web::main]
@@ -35,7 +59,11 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         App::new()
-            .service(greets) // Register route
+            .service(create_post) // Register route
+            .service(update_post) // Register route
+            .service(delete_post) // Register route
+            .service(publish_post) // Register route
+            .service(get_posts) // Register route
             .data(AppState { db: addr.clone() }) // Set app state
     })
     .bind("0.0.0.0:4000")?
