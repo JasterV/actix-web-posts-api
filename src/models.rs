@@ -25,3 +25,9 @@ pub struct NewPost {
     pub body: String,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct PostData {
+    pub title: String,
+    pub body: String,
+}
+

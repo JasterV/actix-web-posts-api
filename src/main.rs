@@ -10,44 +10,70 @@ mod models;
 mod schema;
 
 use actix_web::{
-    get,
-    post,
-    put,
-    delete,
-    patch,
-    web::{self, Path, Json, Data},
-    App, HttpServer, Responder, HttpResponse
+    delete, get, patch, post, put,
+    web::{Data, Json, Path},
+    App, HttpResponse, HttpServer, Responder,
 };
 
 use actix::SyncArbiter;
-use actors::db::DbActor;
+use actors::db::{Create, DbActor, Delete, GetPosts, Publish, Update};
 use db_utils::{get_pool, run_migrations};
-use models::{AppState, NewPost, Post};
+use models::{AppState, PostData};
+use uuid::Uuid;
 use std::env;
 
 #[post("/new")]
-async fn create_post(post: Json<NewPost>, state: Data<AppState>) -> impl Responder {
-    format!("Hello, how are you?")
+async fn create_post(post: Json<PostData>, state: Data<AppState>) -> impl Responder {
+    let db = state.as_ref().db.clone();
+    let post = post.into_inner();
+    match db.send(Create { title: post.title, body: post.body }).await {
+        Ok(Ok(post)) => HttpResponse::Ok().json(post),
+        _ => HttpResponse::InternalServerError().json("Can't create the post"),
+    }
 }
 
 #[get("/published")]
 async fn get_posts(state: Data<AppState>) -> impl Responder {
-    format!("Hello, how are you")
+    let db = state.as_ref().db.clone();
+    match db.send(GetPosts).await {
+        Ok(Ok(posts)) => HttpResponse::Ok().json(posts),
+        _ => HttpResponse::InternalServerError().json("Can't get the posts"),
+    }
 }
 
-#[put("/{id}")]
-async fn update_post(Path(id): Path<String>, post: Json<NewPost>, state: Data<AppState>) -> impl Responder {
-    format!("Hello, how are you {}?", id)
+#[put("/{uuid}")]
+async fn update_post(
+    Path(uuid): Path<Uuid>,
+    post: Json<PostData>,
+    state: Data<AppState>,
+) -> impl Responder {
+    let db = state.as_ref().db.clone();
+    let post = post.into_inner();
+    match db.send(Update { uuid, title: post.title, body: post.body }).await {
+        Ok(Ok(post)) => HttpResponse::Ok().json(post),
+        Ok(Err(_)) => HttpResponse::NotFound().json("Post not found"),
+        _ => HttpResponse::InternalServerError().json("Can't update the post"),
+    }
 }
 
-#[delete("/{id}")]
-async fn delete_post(Path(id): Path<String>, state: Data<AppState>) -> impl Responder {
-    format!("Hello, how are you {}?", id)
+#[delete("/{uuid}")]
+async fn delete_post(Path(uuid): Path<Uuid>, state: Data<AppState>) -> impl Responder {
+    let db = state.as_ref().db.clone();
+    match db.send(Delete { uuid }).await {
+        Ok(Ok(post)) => HttpResponse::Ok().json(post),
+        Ok(Err(_)) => HttpResponse::NotFound().json("Post not found"),
+        _ => HttpResponse::InternalServerError().json("Can't delete the post"),
+    }
 }
 
-#[patch("/{id}")]
-async fn publish_post(Path(id): Path<String>, state: Data<AppState>) -> impl Responder {
-    format!("Hello, how are you {}?", id)
+#[post("/{uuid}/publish")]
+async fn publish_post(Path(uuid): Path<Uuid>, state: Data<AppState>) -> impl Responder {
+    let db = state.as_ref().db.clone();
+    match db.send(Publish { uuid }).await {
+        Ok(Ok(post)) => HttpResponse::Ok().json(post),
+        Ok(Err(_)) => HttpResponse::NotFound().json("Post not found"),
+        _ => HttpResponse::InternalServerError().json("Can't publish the post"),
+    }
 }
 
 #[actix_web::main]
