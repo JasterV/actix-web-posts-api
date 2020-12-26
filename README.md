@@ -20,6 +20,10 @@ docker-compose build
 docker-compose run
 ```
 
+## Resources
+
++ [Actors Model slides](https://slides.com/jasterv/actors-model/fullscreen)
+
 ## Author
 
 👤 **Victor Martinez**
