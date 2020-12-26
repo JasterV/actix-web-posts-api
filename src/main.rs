@@ -19,14 +19,20 @@ use actix::SyncArbiter;
 use actors::db::{Create, DbActor, Delete, GetPosts, Publish, Update};
 use db_utils::{get_pool, run_migrations};
 use models::{AppState, PostData};
-use uuid::Uuid;
 use std::env;
+use uuid::Uuid;
 
 #[post("/new")]
 async fn create_post(post: Json<PostData>, state: Data<AppState>) -> impl Responder {
     let db = state.as_ref().db.clone();
     let post = post.into_inner();
-    match db.send(Create { title: post.title, body: post.body }).await {
+    match db
+        .send(Create {
+            title: post.title,
+            body: post.body,
+        })
+        .await
+    {
         Ok(Ok(post)) => HttpResponse::Ok().json(post),
         _ => HttpResponse::InternalServerError().json("Can't create the post"),
     }
@@ -49,16 +55,28 @@ async fn update_post(
 ) -> impl Responder {
     let db = state.as_ref().db.clone();
     let post = post.into_inner();
-    match db.send(Update { uuid, title: post.title, body: post.body }).await {
-        Ok(Ok(post)) => HttpResponse::Ok().json(post),
-        Ok(Err(_)) => HttpResponse::NotFound().json("Post not found"),
-        _ => HttpResponse::InternalServerError().json("Can't update the post"),
-    }
+
+    db.send(Update {
+        uuid,
+        title: post.title,
+        body: post.body,
+    })
+    .await
+    .map_or(
+        HttpResponse::InternalServerError().json("Can't update the post"),
+        |result| {
+            result.map_or(
+                HttpResponse::NotFound().json("Post not found"),
+                |post| HttpResponse::Ok().json(post),
+            )
+        },
+    )
 }
 
 #[delete("/{uuid}")]
 async fn delete_post(Path(uuid): Path<Uuid>, state: Data<AppState>) -> impl Responder {
     let db = state.as_ref().db.clone();
+    
     match db.send(Delete { uuid }).await {
         Ok(Ok(post)) => HttpResponse::Ok().json(post),
         Ok(Err(_)) => HttpResponse::NotFound().json("Post not found"),
