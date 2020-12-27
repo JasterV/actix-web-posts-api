@@ -1,5 +1,5 @@
 table! {
-    posts (uuid) {
+    articles (uuid) {
         uuid -> Uuid,
         title -> Varchar,
         body -> Text,
