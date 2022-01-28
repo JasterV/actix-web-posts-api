@@ -68,7 +68,7 @@ impl Handler<Update> for DbActor {
     type Result = QueryResult<Article>;
 
     fn handle(&mut self, msg: Update, _: &mut Self::Context) -> Self::Result {
-        let conn = self.0.get().expect("Unable to get a connectio");
+        let conn = self.0.get().expect("Unable to get a connection");
 
         diesel::update(articles)
         .filter(auuid.eq(msg.uuid))
@@ -81,7 +81,7 @@ impl Handler<Delete> for DbActor {
     type Result = QueryResult<Article>;
 
     fn handle(&mut self, msg: Delete, _: &mut Self::Context) -> Self::Result {
-        let conn = self.0.get().expect("Unable to get a connectio");
+        let conn = self.0.get().expect("Unable to get a connection");
 
         diesel::delete(articles)
                 .filter(auuid.eq(msg.uuid))
@@ -93,7 +93,7 @@ impl Handler<Publish> for DbActor {
     type Result = QueryResult<Article>;
 
     fn handle(&mut self, msg: Publish, _: &mut Self::Context) -> Self::Result {
-        let conn = self.0.get().expect("Unable to get a connectio");
+        let conn = self.0.get().expect("Unable to get a connection");
         diesel::update(articles)
         .filter(auuid.eq(msg.uuid))
         .set(published.eq(true))
@@ -105,7 +105,7 @@ impl Handler<GetArticles> for DbActor {
     type Result = QueryResult<Vec<Article>>;
 
     fn handle(&mut self, msg: GetArticles, _: &mut Self::Context) -> Self::Result {
-        let conn = self.0.get().expect("Unable to get a connectio");
+        let conn = self.0.get().expect("Unable to get a connection");
         articles.filter(published.eq(true))
                 .get_results::<Article>(&conn)
     }
